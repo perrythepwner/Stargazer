@@ -9,7 +9,7 @@ import json
 import time
 import requests
 import logging
-from typing import Dict, Optional
+from typing import List, Dict, Optional, Any
 from pathlib import Path
 from flask import Flask, Response, request, jsonify
 from flask_cors import CORS, cross_origin
@@ -17,7 +17,9 @@ from web3 import Web3
 from web3.types import TxReceipt
 from web3.exceptions import TransactionNotFound
 from eth_account import Account
+from eth_account.messages import encode_defunct
 from eth_account.hdaccount import generate_mnemonic
+from eth_abi.packed import encode_packed
 from eth_sandbox.config import Config
 from eth_sandbox.exceptions import EthSandboxError
 
@@ -54,8 +56,8 @@ def sendTransaction(web3: Web3, tx: Dict) -> Optional[TxReceipt]:
             raise EthSandboxError("failed to estimate gas")
         tx["gas"] = estimated_gas
 
-    if "gasPrice" not in tx:
-        tx["gasPrice"] = 0
+    #if "gasPrice" not in tx:
+    #    tx["gasPrice"] = 0
 
     txhash = web3.eth.send_transaction(tx)
 
@@ -72,13 +74,24 @@ def sendTransaction(web3: Web3, tx: Dict) -> Optional[TxReceipt]:
     return rcpt
 
 
-def deploy(web3: Web3, deployer_address: str) -> str:
-    rcpt = sendTransaction(
-        web3, {
-            "from": deployer_address,
-            "value": web3.to_wei(Config.SETUP_CONTRACT_BALANCE, 'ether'),
-            "data": json.loads(Path("/home/ctf/backend/contracts/compiled/Setup.sol/Setup.json").read_text())["bytecode"]["object"],
-        })
+def deploy(web3: Web3, deployer_address: str, constructor_args: List[Any]) -> str:
+    setup_compiled = json.loads(Path("/home/ctf/backend/contracts/compiled/Setup.sol/Setup.json").read_text())
+    setup_bytecode = setup_compiled["bytecode"]["object"]
+    setup_abi = setup_compiled["abi"]
+    
+    setup_contract = web3.eth.contract(abi=setup_abi, bytecode=setup_bytecode)
+
+    constructor_abi = next((item for item in setup_abi if item.get("type") == "constructor"), None)
+    expected_args = constructor_abi.get("inputs", []) if constructor_abi else []
+    if len(constructor_args) != len(expected_args):
+        raise EthSandboxError(f"constructor expects {len(expected_args)} arguments, but {len(constructor_args)} were provided.")
+    
+    deploy_tx = {
+        "from": deployer_address,
+        "value": web3.to_wei(Config.SETUP_CONTRACT_BALANCE, 'ether'),
+    }
+    constructor_data = setup_contract.constructor(*constructor_args).build_transaction(deploy_tx)
+    rcpt = sendTransaction(web3, constructor_data)
     setup_address = rcpt.contractAddress
     return setup_address
 
@@ -86,7 +99,7 @@ def deploy(web3: Web3, deployer_address: str) -> str:
 def getChallengeAddress(web3: Web3, address):
     abi = json.loads(Path("/home/ctf/backend/contracts/compiled/Setup.sol/Setup.json").read_text())["abi"]
     setupContract = web3.eth.contract(address=address, abi=abi)
-    targetAddress = setupContract.functions.TARGET().call()
+    targetAddress = setupContract.functions.TARGET_PROXY().call()
 
     return targetAddress
 
@@ -96,7 +109,6 @@ def force_kill_node():
     if not node_info:
         return False
     os.kill(node_info["pid"], signal.SIGTERM)
-    node_info["logfile"].close()
     return True
 
 
@@ -144,7 +156,16 @@ def launch_node() -> Dict:
         web3.provider.make_request('anvil_setBalance', [bot_acct.address, hex(Web3.to_wei(Config.BOT_BALANCE, 'ether'))])
 
     # deploy contracts
-    setupAddress = deploy(web3, deployer_acct.address)
+    message = encode_packed(["string", "uint256"], ["PASKA: Privileged Authorized StargazerKernel Action", 0])
+    message_hash = Web3.keccak(message)
+    app.logger.info(f"Generated PASKA message hash: {message_hash.hex()}")
+    signable_message = encode_defunct(message_hash)
+    app.logger.info(f"Generated PASKA signable message: {signable_message}")
+    signed_message = Account.sign_message(signable_message, private_key=deployer_acct.key.hex())
+    signature = signed_message.signature
+    app.logger.info(f"Generated PASKA signature: {signature.hex()}")
+
+    setupAddress = deploy(web3, deployer_acct.address, [signature])
     targetAddress = getChallengeAddress(web3, setupAddress)
 
     node_info = {
@@ -255,6 +276,7 @@ def connectionInfo():
         node_info = launch_node()
     else:
         message = "[*] Found node running. Retrieving connection informations..."
+        print(message)
     data = {
         "message": message,
         "PlayerPrivateKey": node_info["playerPrivateKey"],

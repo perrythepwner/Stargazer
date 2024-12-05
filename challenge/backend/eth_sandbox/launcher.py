@@ -75,6 +75,11 @@ def run_launcher(actions: List[Action]):
         exit(action_status)
     except ValueError:
         print("Invalid input. Please enter a number.")
+    except EthSandboxError as e:
+        print(f"Error: {e}")
+        print("Ops, something went wrong :(")
+        print("Please contact support, will be fixed ASAP.")
+        print("Here's a funny cats compilation while you wait: https://youtu.be/DHfRfU3XUEo?si=Ritbs7RaicJp0ZeS")
     except KeyboardInterrupt:
         print("\nExiting.")
         exit(0)
