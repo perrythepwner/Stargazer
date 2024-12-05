@@ -1,9 +1,9 @@
 #!/bin/bash
 
 ########### ENV VARS ###########
-NAME=shootingstar
+NAME=stargazer
 IMAGE=blockchain_${NAME}
-FLAG=HTB{pl4c3h0ld3r}
+FLAG=HTB{stargazer_f1nds_s0l4c3_ag41n}
 PUBLIC_IP=127.0.0.1
 HANDLER_PORT=8000
 LOCAL_RPC_PORT=5000
