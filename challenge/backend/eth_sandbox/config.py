@@ -15,8 +15,8 @@ class Config:
     ALLOWED_NAMESPACES: list = ["web3", "eth", "net"]
     RECEIPT_POLL_INTERVAL: float = 0.1
     N_ACCOUNTS: int = 2
-    N_BOTS: int = 5
+    N_BOTS: int = 0
     DEPLOYER_BALANCE: int = 1000 # ETH
-    PLAYER_BALANCE: int = 500 # ETH
-    BOT_BALANCE: int = 1 # ETH
-    SETUP_CONTRACT_BALANCE: int = 101 # ETH
+    PLAYER_BALANCE: int = 10 # ETH
+    BOT_BALANCE: int = 0 # ETH
+    SETUP_CONTRACT_BALANCE: int = 0 # ETH
