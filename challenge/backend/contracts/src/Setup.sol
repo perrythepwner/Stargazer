@@ -22,7 +22,7 @@ contract Setup {
         (bool success, ) = address(TARGET_PROXY).call(createPASKATicketCall);
         require(success);
 
-        string memory starName = "Starr-PURR_001";
+        string memory starName = "Starry-SPURR_001";
         bytes memory commitStarSightingCall = abi.encodeCall(TARGET_IMPL.commitStarSighting, (starName));
         (success, ) = address(TARGET_PROXY).call(commitStarSightingCall);
         require(success);
@@ -40,11 +40,11 @@ contract Setup {
         require(success, "Setup: failed external call.");
         uint256[] memory novaSightings = abi.decode(returnData, (uint256[]));
         
-        getStarSightingsCall = abi.encodeCall(TARGET_IMPL.getStarSightings, ("Starr-PURR_001"));
+        getStarSightingsCall = abi.encodeCall(TARGET_IMPL.getStarSightings, ("Starry-SPURR_001"));
         (success, returnData) = address(TARGET_PROXY).call(getStarSightingsCall);
         require(success, "Setup: failed external call.");
-        uint256[] memory starrSightings = abi.decode(returnData, (uint256[]));
+        uint256[] memory starrySightings = abi.decode(returnData, (uint256[]));
         
-        return (novaSightings.length >= 2 && starrSightings.length >= 2);
+        return (novaSightings.length >= 2 && starrySightings.length >= 2);
     }
 }

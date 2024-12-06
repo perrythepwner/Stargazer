@@ -57,8 +57,8 @@ if __name__ == "__main__":
 
     StargazerKernel = w3.eth.contract(address=target_addr, abi=target_abi)
     try:
-        sightings = StargazerKernel.functions.getStarSightings("Starr-PURR_001").call()
-        print(f"[+] Star Sightings for 'Starr-PURR_001': {sightings}")
+        sightings = StargazerKernel.functions.getStarSightings("Starry-SPURR_001").call()
+        print(f"[+] Star Sightings for 'Starry-SPURR_001': {sightings}")
     except Exception as e:
         print(f"[!] Failed to call getStarSightings: {e}")
 
@@ -173,8 +173,8 @@ if __name__ == "__main__":
 
 
     try:
-        star1_sightings = Exploit.functions.getStarSightings("Starr-PURR_001").call()
-        print(f"[+] Star Sightings for 'Starr-PURR_001': {star1_sightings}")
+        star1_sightings = Exploit.functions.getStarSightings("Starry-SPURR_001").call()
+        print(f"[+] Star Sightings for 'Starry-SPURR_001': {star1_sightings}")
         star2_sightings = Exploit.functions.getStarSightings("Nova-GLIM_007").call()
         print(f"[+] Star Sightings for 'Nova-GLIM_007': {star2_sightings}")
     except Exception as e:
