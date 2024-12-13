@@ -10,7 +10,7 @@ class Config:
     HANDLER_PORT: int = int(os.getenv("HANDLER_PORT", 1338))
     FRONTEND_PORT: int = int(os.getenv("FRONTEND_PORT", 8080))
     ANVIL_LOGFILE: str = "/var/log/ctf/anvil_output.log"
-    FLAG: str = os.getenv("FLAG", "HTB{pl4c3h0ld3r}")
+    FLAG: str = os.getenv("FLAG", "HTB{stargazer_f1nds_s0l4c3_ag41n}")
     
     ALLOWED_NAMESPACES: list = ["web3", "eth", "net"]
     RECEIPT_POLL_INTERVAL: float = 0.1
